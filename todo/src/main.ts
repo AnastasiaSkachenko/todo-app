@@ -1,24 +1,41 @@
-import './style.css'
-import typescriptLogo from './typescript.svg'
-import viteLogo from '/vite.svg'
-import { setupCounter } from './counter.ts'
+import { supabase } from "./utils/supabaseClient";
+import { signOut } from "./auth";
+import { handleRegister, showPage } from "./helpers";
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://www.typescriptlang.org/" target="_blank">
-      <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
-    </a>
-    <h1>Vite + TypeScript</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite and TypeScript logos to learn more
-    </p>
-  </div>
-`
+const errorP = document.getElementById("error") as HTMLParagraphElement;
+const button = document.getElementById("registerBtn") as HTMLButtonElement;
+const buttonSignOut = document.getElementById("signOut") as HTMLButtonElement;
 
-setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
+// sign up logic
+
+
+const updateUIBasedOnSession = (session: any) => {
+  console.log("session", session)
+  if (session?.user) {
+    showPage('app')
+    const greeting = document.getElementById("greeting") as HTMLParagraphElement 
+    greeting.innerText = `Welcome back, ${session.user.user_metadata.name}`
+  } else {
+    showPage("register")
+  } 
+};
+
+
+
+
+supabase.auth.getSession().then(({ data, error }) => {
+  console.log("data", data)
+  if (error) console.log("error", error)
+  updateUIBasedOnSession(data.session);
+});
+
+button?.addEventListener("click", (event) => handleRegister(event, errorP, button));
+
+supabase.auth.onAuthStateChange((_event, session) => {
+  console.log("Auth event:", _event, session);
+  updateUIBasedOnSession(session);
+});
+
+
+buttonSignOut.addEventListener("click", signOut)
+

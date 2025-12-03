@@ -1,0 +1,7 @@
+#register, #app, #confirmEmail {
+    display: none;
+}
+
+button:hover {
+    cursor: pointer;
+}

@@ -3,3 +3,9 @@
 node_modules
 .env
 session1.ts
+deno.lock
+
+
+package-lock.json
+
+netlify/
