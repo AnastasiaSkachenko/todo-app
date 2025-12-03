@@ -1,4 +1,7 @@
-import { signUp } from "./auth";
+import { signIn, signOut, signUp, updateUser } from "./auth";
+const message = document.getElementById("message");
+import type { User } from '@supabase/supabase-js';
+
 
 
 
@@ -8,7 +11,10 @@ export const showPage = (pageId: string) => {
   // Collect all screen elements
   const screens = [
 	app,
-	document.getElementById("register"),
+	document.getElementById("signUp"),
+	document.getElementById("signIn"),
+	document.getElementById("updateUser"),
+	
 	// Add more screens here if needed
   ].filter(Boolean) as HTMLElement[]; // filter out nulls
 
@@ -26,15 +32,26 @@ export const showPage = (pageId: string) => {
   }
 };
 
+export const updateUIBasedOnSession = (session: any) => {
+	console.log("session", session)
+	if (session?.user) {
+		showPage('app')
+		const greeting = document.getElementById("greeting") as HTMLParagraphElement 
+		greeting.innerText = `Welcome back, ${session.user.user_metadata.name}!`
+	} else {
+		showPage("signIn")
+	} 
+}
 
-export const  handleRegister = async (event: PointerEvent, errorP: HTMLParagraphElement, button: HTMLButtonElement) => {
+export const  handleSignUp = async (event: PointerEvent,  button: HTMLButtonElement) => {
 	event.preventDefault();
-	console.log("button clicked")
 
 	const email = (document.getElementById("email") as HTMLInputElement).value;
 	const password1 = (document.getElementById("password1") as HTMLInputElement).value;
 	const password2 = (document.getElementById("password2") as HTMLInputElement).value;
 	const name = (document.getElementById("name") as HTMLInputElement).value;
+	const errorP = document.getElementById("error") as HTMLParagraphElement;
+
 
 	if (!email || !password1 || !password2) {
 		errorP.innerText = "Please fill out all fields";
@@ -59,10 +76,9 @@ export const  handleRegister = async (event: PointerEvent, errorP: HTMLParagraph
 		errorP.innerText = error;
 		return;
 	} else {
-		const confirmEmailEl = document.getElementById("confirmEmail");
-
-		if (confirmEmailEl) {
-			confirmEmailEl.style.display = "block";
+		if (message) {
+			message.style.display = "block";
+			message.innerText = "Your account was successfully created! Confirm your email account to be able to continue! "
 		}
 	}
 
@@ -72,5 +88,89 @@ export const  handleRegister = async (event: PointerEvent, errorP: HTMLParagraph
 	// Successful sign-up: data.user might be null until email confirmed
 	// Supabase onAuthStateChange will trigger and handle UI
 
+}
+
+export const  handleSignIn = async (event: PointerEvent, button: HTMLButtonElement) => {
+	event.preventDefault();
+
+	const email = (document.getElementById("signInEmail") as HTMLInputElement).value;
+	const password = (document.getElementById("password") as HTMLInputElement).value;
+	const errorP = document.getElementById("signInError") as HTMLParagraphElement;
+
+
+	if (!email || !password) {
+		errorP.innerText = "Please fill out all fields";
+		return;
+	}
+
+	document.body.style.cursor = "wait"
+	button.disabled = true
+
+	const { error } = await signIn(email, password);
+	if (error) {
+		errorP.innerText = error;
+		return;
+	} else {
+		if (message) {
+			message.style.display = "block";
+			message.innerText = "You are logged in successfully! We wish you productive day!"
+		}
+	}
+
+	errorP.innerText = ""
+	document.body.style.cursor = "default"
+	showPage("app")
+}
+
+export const  handleUpdateUserForm = async (event: PointerEvent, currentData: User) => {
+	event.preventDefault();
+
+	const email = document.getElementById("updateEmail") as HTMLInputElement;
+	const name = document.getElementById("updateName") as HTMLInputElement;
+
+	email.value = currentData.email ?? ''
+	name.value = currentData.user_metadata.name
+
+	showPage("updateUser")
+
+}
+
+export const  handleSaveUser = async (event: PointerEvent, button: HTMLButtonElement) => {
+	event.preventDefault();
+
+	const email = (document.getElementById("updateEmail") as HTMLInputElement).value;
+	const name = (document.getElementById("updateName") as HTMLInputElement).value;
+	const errorP = document.getElementById("updateUserError") as HTMLParagraphElement;
+
+
+	if (!email || !name) {
+		errorP.innerText = "Please fill out all fields";
+		return;
+	}
+
+	document.body.style.cursor = "wait"
+	button.disabled = true
+
+	const { error } = await updateUser({email, name});
+	if (error) {
+		errorP.innerText = error;
+		return;
+	} else {
+		if (message) {
+			message.style.display = "block";
+			message.innerText = "Your account was updated successfully!"
+		}
+	}
+
+	errorP.innerText = ""
+	document.body.style.cursor = "default"
+	showPage("app")
+}
+
+
+export const handleSignOut = async () => {
+	signOut()
+
+	if (message) message.innerText = 'You have been successfully signed out!'
 }
 

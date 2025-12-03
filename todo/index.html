@@ -7,11 +7,13 @@
     <link rel="stylesheet" href="./src/styles/main.css" />
   </head>
   <body>
-    <button id="signOut">sign out</button>
     <div id="app">
       <p id="greeting"></p>
+      <button id="updateUserForm">update User</button>
+      <button id="signOut">sign out</button>
+
     </div>
-    <form id="register">
+    <form id="signUp">
       <label for="name">Name:</label>
       <input id="name" type="text" />
 
@@ -26,9 +28,37 @@
 
       <p id="error"></p>
 
-      <button type="button" id="registerBtn">Create Account</button>
-      <p id="confirmEmail">Your account was successfully created! Confirm your email account to be able to continue! </p>
+      <button type="button" id="signUpBtn">Create Account</button>
     </form>
+
+    <form id="signIn">
+
+      <label for="email">Email:</label>
+      <input id="signInEmail" type="text" />
+
+      <label for="password">Password:</label>
+      <input id="password" type="text" />
+
+      <p id="signInError"></p>
+
+      <button type="button" id="signInBtn">Sign in</button>
+    </form>
+
+    <form id="updateUser">
+
+      <label for="updateName">Name:</label>
+      <input id="updateName" type="text" />
+
+      <label for="updateEmail">Email:</label>
+      <input id="updateEmail" type="text" />
+
+      <p id="updateUserError"></p>
+
+      <button type="button" id="saveUser">Save changes</button>
+    </form>
+
+
+    <p id="message"></p>
   </body>
   <script type="module" src="./src/main.ts"></script>
 

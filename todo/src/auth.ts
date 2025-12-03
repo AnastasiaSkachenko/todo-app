@@ -27,21 +27,31 @@ export const signUp = async (email: string, password: string, name: string) => {
   }
 };
 
-// Sign in
-export const signIn = async (email: string, password: string) => {
-  const {data:existing, error:errorFindUser} = await supabase.from("Users").select("*").eq("email", email).maybeSingle()
 
-  if (errorFindUser) throw errorFindUser;
+export const updateUser = async (updates: { email?: string; name?: string }) => {
+  try {
+    const { data, error } = await supabase.auth.updateUser({
+      email: updates.email,
+      data: updates.name ? { name: updates.name } : undefined
+    });
 
-  if (existing) {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    return {data};
-
-  } else {
-    return {error: "User with this does not exists. Check if your email adress was spelled correctly."}
-
+    if (error) return { error: error.message };
+    return { data };
+  } catch (err) {
+    return { error: (err as Error).message };
   }
+};
+
+export const signIn = async (email: string, password: string) => {
+  const res = await supabase.auth.signInWithPassword({ email, password });
+
+  if (res.error) {
+    // `error` exists only when login failed
+    return { error: res.error.message }; 
+  }
+
+  // Successful login
+  return { data: res.data };
 };
 
 // Sign out
