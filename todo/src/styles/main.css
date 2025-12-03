@@ -1,7 +1,8 @@
-#register, #app, #confirmEmail {
+#signIn, #signUp, #updateUser, #app, #resetPasswordForm {
     display: none;
 }
 
 button:hover {
     cursor: pointer;
 }
+

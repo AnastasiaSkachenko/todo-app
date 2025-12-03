@@ -10,6 +10,7 @@
     <div id="app">
       <p id="greeting"></p>
       <button id="updateUserForm">update User</button>
+      <button id="sendLink">Reset password</button>      
       <button id="signOut">sign out</button>
 
     </div>
@@ -29,6 +30,19 @@
       <p id="error"></p>
 
       <button type="button" id="signUpBtn">Create Account</button>
+    </form>
+
+    <form id="resetPasswordForm">
+
+      <label for="password1Reset">Password:</label>
+      <input id="password1Reset" type="text" />
+
+      <label for="password2Reset">Repeat password:</label>
+      <input id="password2Reset" type="text" />
+
+      <p id="errorResetPassword"></p>
+
+      <button type="button" id="resetPasswordBtn">Reset password</button>
     </form>
 
     <form id="signIn">

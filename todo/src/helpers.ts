@@ -1,7 +1,6 @@
-import { signIn, signOut, signUp, updateUser } from "./auth";
+import { resetPassword, savePassword, signIn, signOut, signUp, updateUser } from "./auth";
 const message = document.getElementById("message");
 import type { User } from '@supabase/supabase-js';
-
 
 
 
@@ -10,12 +9,11 @@ export const showPage = (pageId: string) => {
 
   // Collect all screen elements
   const screens = [
-	app,
-	document.getElementById("signUp"),
-	document.getElementById("signIn"),
-	document.getElementById("updateUser"),
-	
-	// Add more screens here if needed
+		app,
+		document.getElementById("signUp"),
+		document.getElementById("signIn"),
+		document.getElementById("updateUser"),
+		document.getElementById("resetPasswordForm"),
   ].filter(Boolean) as HTMLElement[]; // filter out nulls
 
   // Hide all screens
@@ -32,8 +30,7 @@ export const showPage = (pageId: string) => {
   }
 };
 
-export const updateUIBasedOnSession = (session: any) => {
-	console.log("session", session)
+export const updateUI = (session: any) => {  
 	if (session?.user) {
 		showPage('app')
 		const greeting = document.getElementById("greeting") as HTMLParagraphElement 
@@ -167,6 +164,55 @@ export const  handleSaveUser = async (event: PointerEvent, button: HTMLButtonEle
 	showPage("app")
 }
 
+export const handleSendLink = async (button: HTMLButtonElement, email: string) => {
+	document.body.style.cursor = "wait"
+	button.disabled = true
+
+	if (message) {
+		message.style.display = "block";
+		message.innerText = "We have sent you an email link to reset your password. Follow the link and instructions we give you."
+	}
+
+	const { error } = await resetPassword(email);
+	if (error) {
+		console.error(error);
+		return;
+	}
+
+	document.body.style.cursor = "default"
+}
+
+export const handleResetPassword = async (button: HTMLButtonElement) => {
+  const hash = window.location.hash;
+  if (hash.includes('access_token') && hash.includes('refresh_token')) {
+		const password1 = (document.getElementById("password1Reset") as HTMLInputElement).value;
+		const password2 = (document.getElementById("password2Reset") as HTMLInputElement).value;
+		const errorP = document.getElementById("errorResetPassword") as HTMLParagraphElement;
+
+
+		if ( !password1 || !password2) {
+			errorP.innerText = "Please fill out all fields";
+			return;
+		}
+
+		if (password1 !== password2) {
+			errorP.innerText = "Passwords do not match";
+			return;
+		}
+
+		document.body.style.cursor = "wait"
+		button.disabled = true
+
+    await savePassword(password1);
+
+		window.history.replaceState(null, '', window.location.pathname);
+		showPage("app")
+
+    if (message) message.innerText = "Password updated successfully";
+  } else {
+    if (message) message.innerText = "Invalid reset password link.";
+  }
+};
 
 export const handleSignOut = async () => {
 	signOut()

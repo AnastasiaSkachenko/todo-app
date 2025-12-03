@@ -54,6 +54,71 @@ export const signIn = async (email: string, password: string) => {
   return { data: res.data };
 };
 
+
+export const resetPassword = async (email: string) => {
+  try {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: 'http://localhost:5174/#resetPassword' 
+    });
+
+
+    if (error) return { error: error.message };
+
+    return { data };
+  } catch (err) {
+    return { error: (err as Error).message };
+  }
+};
+
+export const savePassword = async (newPassword: string) => {
+  const rawHash = window.location.hash.substring(1);
+
+  // Find where the actual token parameters start
+  const tokenIndex = rawHash.indexOf("access_token");
+
+  if (tokenIndex === -1) {
+    console.error("No access_token found inside hash:", rawHash);
+    return;
+  }
+
+  // Only keep the token parameters: "access_token=...&refresh_token=..."
+  const queryString = rawHash.substring(tokenIndex);
+
+  const params = new URLSearchParams(queryString);
+
+  const accessToken = params.get("access_token");
+  const refreshToken = params.get("refresh_token");
+
+
+  if (!accessToken || !refreshToken) {
+    console.error("Could not extract tokens. Query string:", queryString);
+    return;
+  }
+
+  // Create a session
+  const {  error: sessionError } = await supabase.auth.setSession({
+    access_token: accessToken,
+    refresh_token: refreshToken
+  });
+
+  if (sessionError) {
+    console.error("Failed to set session:", sessionError.message);
+    return;
+  }
+
+
+  // Update password
+  const { error: updateError } = await supabase.auth.updateUser({
+    password: newPassword
+  });
+
+  if (updateError) {
+    console.error("Failed to update password:", updateError.message);
+  } else {
+    console.log("Password updated successfully!");
+  }
+};
+
 // Sign out
 export const signOut = async () => {
   const { error } = await supabase.auth.signOut();
