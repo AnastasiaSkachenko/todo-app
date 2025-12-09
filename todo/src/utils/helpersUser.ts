@@ -1,44 +1,10 @@
-import { resetPassword, savePassword, signIn, signOut, signUp, updateUser } from "./auth";
+import { resetPassword, savePassword, signIn, signOut, signUp, updateUser } from "../auth";
 const message = document.getElementById("message");
 import type { User } from '@supabase/supabase-js';
+import { showPage } from "./helpers";
 
 
 
-export const showPage = (pageId: string) => {
-	const app = document.getElementById("app") as HTMLElement;
-
-  // Collect all screen elements
-  const screens = [
-		app,
-		document.getElementById("signUp"),
-		document.getElementById("signIn"),
-		document.getElementById("updateUser"),
-		document.getElementById("resetPasswordForm"),
-  ].filter(Boolean) as HTMLElement[]; // filter out nulls
-
-  // Hide all screens
-  screens.forEach(screen => {
-	screen.style.display = "none";
-  });
-
-  // Show the requested page
-  const target = document.getElementById(pageId);
-  if (target) {
-	target.style.display = "block";
-  } else {
-	console.warn(`No page found with id: ${pageId}`);
-  }
-};
-
-export const updateUI = (session: any) => {  
-	if (session?.user) {
-		showPage('app')
-		const greeting = document.getElementById("greeting") as HTMLParagraphElement 
-		greeting.innerText = `Welcome back, ${session.user.user_metadata.name}!`
-	} else {
-		showPage("signIn")
-	} 
-}
 
 export const  handleSignUp = async (event: PointerEvent,  button: HTMLButtonElement) => {
 	event.preventDefault();
@@ -116,7 +82,7 @@ export const  handleSignIn = async (event: PointerEvent, button: HTMLButtonEleme
 
 	errorP.innerText = ""
 	document.body.style.cursor = "default"
-	showPage("app")
+	showPage("account")
 }
 
 export const  handleUpdateUserForm = async (event: PointerEvent, currentData: User) => {
@@ -161,7 +127,7 @@ export const  handleSaveUser = async (event: PointerEvent, button: HTMLButtonEle
 
 	errorP.innerText = ""
 	document.body.style.cursor = "default"
-	showPage("app")
+	showPage("account")
 }
 
 export const handleSendLink = async (button: HTMLButtonElement, email: string) => {
@@ -206,7 +172,7 @@ export const handleResetPassword = async (button: HTMLButtonElement) => {
     await savePassword(password1);
 
 		window.history.replaceState(null, '', window.location.pathname);
-		showPage("app")
+		showPage("account")
 
     if (message) message.innerText = "Password updated successfully";
   } else {

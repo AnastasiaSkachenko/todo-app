@@ -7,11 +7,16 @@
     <link rel="stylesheet" href="./src/styles/main.css" />
   </head>
   <body>
-    <div id="app">
+    <div id="account">
       <p id="greeting"></p>
-      <button id="updateUserForm">update User</button>
-      <button id="sendLink">Reset password</button>      
-      <button id="signOut">sign out</button>
+
+      <button id="createTodoTrigger">Add</button>
+      <ul id="todoTodayList"></ul>
+      <div class="user-menu">
+        <button id="updateUserForm">Update User</button>
+        <button id="sendLink">Reset password</button>      
+        <button id="signOut">Sign out</button>
+      </div>
 
     </div>
     <form id="signUp">
@@ -73,6 +78,23 @@
 
 
     <p id="message"></p>
+
+    <form id="formTodo">
+      <label for="nameTodo">Name:</label>
+      <input id="nameTodo" type="text" />
+
+      <label for="description">Description:</label>
+      <input id="description" type="text" />
+
+
+      <label for="deadline">Deadline:</label>
+      <input id="deadline" type="" />
+
+      <p id="errorTodo"></p>
+
+      <button type="button" id="submitBtn">Submit</button>
+    </form>
+
   </body>
   <script type="module" src="./src/main.ts"></script>
 
