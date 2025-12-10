@@ -10,8 +10,46 @@
     <div id="account">
       <p id="greeting"></p>
 
+      <select id="filterTodos">
+        <option value="all">All</option>
+        <option value="dateCreated">By date created</option>
+        <option value="done">Done</option>
+        <option value="notDone">Not done</option>
+        <option value="deadline">By deadline</option>
+      </select>
+
+      <select id="sortTodos">
+        <option value="default">Default</option>
+        <option value="dateCreatedAsc">Created At ↑</option>
+        <option value="dateCreatedDesc">Created At ↓</option>
+        <option value="deadlineAsc">Deadline ↑</option>
+        <option value="deadlineDesc">Deadline ↓</option>
+      </select>
+
+      <input type="date" id="filterSortDate" />
+
       <button id="createTodoTrigger">Add</button>
       <ul id="todoTodayList"></ul>
+      <button id="clearTodosBtn">Clear</button>
+      <fieldset id="deleteOptions">
+        <legend>Select what todos you want to delete:</legend>
+
+        <div>
+          <input type="radio" id="all" name="type" value="all"  />
+          <label for="all">All</label>
+        </div>
+
+        <div>
+          <input type="radio" id="byDate" name="type" value="byDate" />
+          <label for="byDate">Todays</label>
+        </div>
+
+        <div>
+          <input type="radio" id="done" name="type" value="done" />
+          <label for="done">Done</label>
+        </div>
+      </fieldset>
+
       <div class="user-menu">
         <button id="updateUserForm">Update User</button>
         <button id="sendLink">Reset password</button>      
@@ -88,7 +126,7 @@
 
 
       <label for="deadline">Deadline:</label>
-      <input id="deadline" type="" />
+      <input id="deadline" type="datetime-local" />
 
       <p id="errorTodo"></p>
 

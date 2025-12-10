@@ -1,6 +1,7 @@
+import { session } from "../auth";
 import type { Todo } from "../interfaces";
 import { toggleTodoForm } from "../main";
-import { deleteTodo, getTodayTodos, toggleDoneTodo } from "./helpersTodo";
+import { deleteTodo, filterTodos, toggleDoneTodo } from "./helpersTodo";
 
 
 export const showPage = (pageId: string) => {
@@ -37,17 +38,21 @@ const parseDateTimeLocal = (dateTimeStr: string): string => {
 }
 
 
-export const updateUI = async (session: any) => {  
+export const updateUI = async (todos?: Todo[]) => {  
 	if (!session?.user) {
 		showPage("signIn")
 		return 
 	} 
 
+	console.log("Updating UI with todos:", todos);
+//should be date in format YYYY-MM-DD but date type is Date
+
+
 	const greeting = document.getElementById("greeting") as HTMLParagraphElement;
 	greeting.innerText = `Welcome back, ${session.user.user_metadata.name}!`
 
 	const todoListElement = document.getElementById("todoTodayList") as HTMLUListElement;
-	const todoList = await  getTodayTodos()
+	const todoList = todos ?? await  filterTodos("all")
 	todoListElement.innerHTML = "";
 
 

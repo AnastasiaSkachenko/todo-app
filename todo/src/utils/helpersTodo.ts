@@ -1,25 +1,7 @@
 import { session } from "../auth";
-import type { Todo } from "../interfaces"
+import type { FilterOption, SortOption, Todo } from "../interfaces"
 import { updateUI } from "./helpers";
 import { supabase } from "./supabaseClient";
-
-const today = new Date().toISOString().split("T")[0];
-
-export const getTodayTodos = async () => {
-    const { data, error } = await supabase
-    .from("Todos")
-    .select("*")
-    .gte("deadline", `${today}T00:00:00.000Z`)
-    .lte("deadline", `${today}T23:59:59.999Z`);
-    if (error) {
-    console.error("Supabase error:", error);
-    return [];
-    }
-
-    console.log("todos:", data);
-    return data as Todo[];
-
-}
 
 
 export const upsertTodo = async (event: PointerEvent, todoId?: string) => {
@@ -69,7 +51,7 @@ export const upsertTodo = async (event: PointerEvent, todoId?: string) => {
     console.log("Upserted todo:", data);
 
       
-    updateUI(session);
+    updateUI();
 
     return data;
 
@@ -93,7 +75,7 @@ export const toggleDoneTodo = async (event: PointerEvent, todoId: string, done: 
 		return null;
 	}
 
-	updateUI(session);
+	updateUI();
 }
 
 export const deleteTodo = async (event: PointerEvent, todoId: string) => {
@@ -107,11 +89,89 @@ export const deleteTodo = async (event: PointerEvent, todoId: string) => {
     if (error) throw error;
 
     // Clear inputs
-    updateUI(session);
+    updateUI();
 
   } catch (error) {
     console.error("Supabase error:", error);
     return null;
   }
 };
+
+export const clearTodo = async (type: "byDate" | "all" | "done") => {
+	try {
+		let query = supabase.from("Todos").delete();
+
+		if (type === "byDate") {
+			const today = new Date().toISOString().split("T")[0];
+			query = query
+				.gte("deadline", `${today}T00:00:00.000Z`)
+				.lte("deadline", `${today}T23:59:59.999Z`);
+		} else if (type === "done") {
+			query = query.eq("done", true);
+		} else if (type === "all") {
+			query = query.eq("user", session?.user.id); 
+		}
+
+		// Execute the query here
+		const { error } = await query;
+
+		if (error) throw error;
+
+		updateUI();
+
+	} catch (error) {
+		console.error("Supabase error:", error);
+		return null;
+	}
+};
+
+export const filterTodos = async (filter: FilterOption, date?: Date) => {
+	let query = supabase.from("Todos").select("*").eq("user", session?.user.id);
+
+	const parsedDate = date ? date.toISOString().split("T")[0] : null;
+
+	if (filter === "dateCreated") {
+		query = query.gte("created_at", `${parsedDate}T00:00:00.000Z`)
+    .lte("created_at", `${parsedDate}T23:59:59.999Z`);
+	} else if (filter === "done") {
+		query = query.eq("done", true);
+	} else if (filter === "notDone") {
+		query = query.eq("done", false);
+	} else if (filter === "deadline") {
+		query = query.gte("deadline", `${parsedDate}T00:00:00.000Z`)
+    .lte("deadline", `${parsedDate}T23:59:59.999Z`);
+	}
+
+	const { data, error } = await query;
+
+	if (error) {
+		console.error("Supabase error:", error);
+		return [];
+	}
+
+	return data as Todo[];
+}
+
+
+export const sortTodos = async (todos: Todo[], sort: SortOption, order: "Asc" | "Desc") => {
+	console.log(`Sorting todos ${todos} by ${sort} in ${order} order`);
+	if (sort === "dateCreated") {
+		todos.sort((a, b) => {
+			const dateA = new Date(a.created_at).getTime();
+			const dateB = new Date(b.created_at).getTime();
+			return order === "Asc" ? dateA - dateB : dateB - dateA;
+		});
+	} else if (sort === "deadline") {
+		todos.sort((a, b) => {
+			const dateA = new Date(a.deadline).getTime();
+			const dateB = new Date(b.deadline).getTime();
+			return order === "Desc" ? dateA - dateB : dateB - dateA;
+		});
+		return todos;
+	}
+
+	console.log("Todos returned from sortTodos:", todos);
+	return todos as Todo[];
+}
+
 

@@ -17,3 +17,6 @@ export interface Todo {
     updated_at: Date,
     user: User
 }
+
+export type FilterOption = "all" | "dateCreated" | "done"  | "notDone" | "deadline";
+export type SortOption =  "all" | "dateCreated" | "deadline";

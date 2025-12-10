@@ -1,6 +1,8 @@
-#signIn, #signUp, #updateUser, #app, #resetPasswordForm, #formTodo {
+#signIn, #signUp, #updateUser, #app, #resetPasswordForm, #formTodo, #deleteOptions, #filterSortDate {
     display: none;
 }
+
+
 
 button:hover {
     cursor: pointer;
