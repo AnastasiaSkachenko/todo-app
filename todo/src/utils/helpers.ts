@@ -2,7 +2,7 @@ import { session } from "../auth";
 import type { Tag, Todo } from "../interfaces";
 import {  currentTags, toggleTagForm, toggleTodoForm } from "../main";
 import { deleteTodo, filterTodos, toggleDoneTodo } from "./helpersTodo";
-import { deleteTag, fetchTags } from "./helptersTags";
+import { deleteTag, fetchTags } from "./helpersTags";
 
 
 export const showPage = (pageId: string) => {

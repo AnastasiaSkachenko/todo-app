@@ -4,7 +4,7 @@ import type { User } from '@supabase/supabase-js';
 import { renderTodos, showPage, updateUI } from "./utils/helpers";
 import { clearTodo, filterTodos, sortTodos, upsertTodo } from "./utils/helpersTodo";
 import type { FilterOption, Tag, Todo } from "./interfaces";
-import { fetchTags, upsertTag } from "./utils/helptersTags";
+import { fetchTags, upsertTag } from "./utils/helpersTags";
 
 const signUpBtn = document.getElementById("signUpBtn") as HTMLButtonElement;
 const signInBtn = document.getElementById("signInBtn") as HTMLButtonElement;
