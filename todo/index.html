@@ -28,6 +28,11 @@
 
       <input type="date" id="filterSortDate" />
 
+      <button id="addTag">+</button>
+      <fieldset>
+        <legend>Tags:</legend>
+        <ul id="tagsList"></ul>
+      </fieldset>
       <button id="createTodoTrigger">Add</button>
       <ul id="todoTodayList"></ul>
       <button id="clearTodosBtn">Clear</button>
@@ -124,6 +129,10 @@
       <label for="description">Description:</label>
       <input id="description" type="text" />
 
+      <select id="todoTag"></select>
+      <div id="currentTodosTags"></div>
+
+
 
       <label for="deadline">Deadline:</label>
       <input id="deadline" type="datetime-local" />
@@ -132,6 +141,23 @@
 
       <button type="button" id="submitBtn">Submit</button>
     </form>
+
+    <form id="formTag">
+      <label for="nameTag">Name:</label>
+      <input id="nameTag" type="text" />
+
+      <label for="descriptionTag">Description:</label>
+      <input id="descriptionTag" type="text" />
+
+
+      <label for="color">Color:</label>
+      <input id="color" type="color" />
+
+      <p id="errorTag"></p>
+
+      <button type="button" id="tagBtn">Submit</button>
+    </form>
+
 
   </body>
   <script type="module" src="./src/main.ts"></script>

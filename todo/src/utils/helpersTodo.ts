@@ -1,7 +1,10 @@
 import { session } from "../auth";
 import type { FilterOption, SortOption, Todo } from "../interfaces"
+import { clearFormTags, currentTagsForm } from "../main";
 import { updateUI } from "./helpers";
 import { supabase } from "./supabaseClient";
+
+const tagFilters: string[] = []
 
 
 export const upsertTodo = async (event: PointerEvent, todoId?: string) => {
@@ -16,6 +19,8 @@ export const upsertTodo = async (event: PointerEvent, todoId?: string) => {
   const name = nameInput.value.trim();
   const description = descriptionInput.value.trim();
   const deadline = deadlineInput.value;
+	const doneButtons = document.getElementsByClassName("toggleDoneBtn") as HTMLCollectionOf<HTMLButtonElement>;
+	const done = todoId ? Array.from(doneButtons).find(btn => btn.dataset.id === todoId)?.dataset.done == "true" : false;
 
   // Basic validation (optional but very helpful!)
   if (!name || !deadline) {
@@ -24,7 +29,7 @@ export const upsertTodo = async (event: PointerEvent, todoId?: string) => {
   }
 
 
-  console.log("id:", todoId);
+  console.log("id:", todoId, "done:", done);
   // Build row cleanly
   const todo = {
     id: todoId || undefined,
@@ -32,33 +37,65 @@ export const upsertTodo = async (event: PointerEvent, todoId?: string) => {
     description,
     deadline,
     user: session?.user.id,
-    done: false
+    done,
   };
 
-  try {
-    const { data, error } = await supabase
-      .from("Todos")
-      .upsert(todo)
-      .select(); // ensures updated row comes back
+	try {
+		// 1. Upsert todo
+		const { data: currentTodo, error } = await supabase
+			.from("Todos")
+			.upsert(todo)
+			.select()
+			.single<Todo>();
 
-    if (error) throw error;
+		if (error) throw error;
 
-    // Clear inputs
-    nameInput.value = "";
-    descriptionInput.value = "";
-    deadlineInput.value = "";
+		// 2. Extract tag IDs
+		const tagIds = currentTagsForm.map(tag => tag.id);
 
-    console.log("Upserted todo:", data);
+		// 3. Upsert relations
+		if (tagIds.length > 0) {
+			const relations = tagIds.map(tagId => ({
+				todo_id: currentTodo.id,
+				tag_id: tagId
+			}));
 
-      
-    updateUI();
+			const { error: upsertError } = await supabase
+				.from("todo_tag")
+				.upsert(relations, {
+					onConflict: "todo_id,tag_id"
+				});
 
-    return data;
+			if (upsertError) throw upsertError;
+		}
 
-  } catch (error) {
-    console.error("Supabase error:", error);
-    return null;
-  }
+		// 4. Delete removed relations
+		const { error: deleteError } = await supabase
+			.from("todo_tag")
+			.delete()
+			.eq("todo_id", currentTodo.id)
+			.not(
+				"tag_id",
+				"in",
+				tagIds.length
+					? `(${tagIds.map(id => `"${id}"`).join(",")})`
+					: "()"
+			);
+
+		if (deleteError) throw deleteError;
+
+		// 5. Reset UI
+		nameInput.value = "";
+		descriptionInput.value = "";
+		deadlineInput.value = "";
+		clearFormTags();
+
+		updateUI();
+		return currentTodo;
+
+	} catch (error) {
+		console.error("Failed to save todo:", error);
+	}
 };
 
 export const toggleDoneTodo = async (event: PointerEvent, todoId: string, done: boolean) => {
@@ -68,6 +105,7 @@ export const toggleDoneTodo = async (event: PointerEvent, todoId: string, done: 
 			.from("Todos")
 			.update({ done: !done })
 			.eq("id", todoId);
+			
 		if (error) throw error;
 
 	} catch (error) {
@@ -125,8 +163,18 @@ export const clearTodo = async (type: "byDate" | "all" | "done") => {
 	}
 };
 
-export const filterTodos = async (filter: FilterOption, date?: Date) => {
-	let query = supabase.from("Todos").select("*").eq("user", session?.user.id);
+export const filterTodos = async (filter: FilterOption, date?: Date, tag?: string, deleteTag?: boolean) => {
+	console.log("Filtering todos by:", filter, date, tag, deleteTag);
+
+	let query = supabase
+	.from("Todos")
+	.select(`
+		*,
+		todo_tag (
+			tag:Tags (*)
+		)
+	`)
+	.eq("user", session?.user.id);
 
 	const parsedDate = date ? date.toISOString().split("T")[0] : null;
 
@@ -140,16 +188,64 @@ export const filterTodos = async (filter: FilterOption, date?: Date) => {
 	} else if (filter === "deadline") {
 		query = query.gte("deadline", `${parsedDate}T00:00:00.000Z`)
     .lte("deadline", `${parsedDate}T23:59:59.999Z`);
+	} else if (filter === "tag" && tag) {
+		if (deleteTag) { 
+			const index = tagFilters.indexOf(tag);
+			if (index > -1) {
+				tagFilters.splice(index, 1);
+			}
+		} else {
+			if (!tagFilters.includes(tag)) {
+				tagFilters.push(tag);
+			}
+		}
+		// 1. Find all todo_ids with this tag
+		if (tagFilters.length > 0) {
+			const { data: links, error } = await supabase
+				.from("todo_tag")
+				.select("todo_id, tag_id")
+				.in("tag_id", tagFilters);
+
+			if (error) {
+				console.error(error);
+				return [];
+			}
+
+			// Count how many filtered tags each todo has
+			const tagCountByTodo: Record<string, number> = {};
+			for (const link of links) {
+				tagCountByTodo[link.todo_id] =
+				(tagCountByTodo[link.todo_id] || 0) + 1;
+			}
+
+			// Keep todos that match ALL tags
+			const todoIds = Object.entries(tagCountByTodo)
+				.filter(([, count]) => count === tagFilters.length)
+				.map(([todoId]) => todoId);
+
+			if (todoIds.length === 0) return [];
+
+			query = query.in("id", todoIds);
+		}
+		
 	}
 
 	const { data, error } = await query;
+
 
 	if (error) {
 		console.error("Supabase error:", error);
 		return [];
 	}
 
-	return data as Todo[];
+	console.log("Filtered todos:", data);
+
+	const todosWithTags: Todo[] = (data ?? []).map((todo: any) => ({
+	...todo,
+	tags: todo.todo_tag?.map((tt: any) => tt.tag) ?? []
+	}));
+
+	return todosWithTags;
 }
 
 
@@ -175,3 +271,4 @@ export const sortTodos = async (todos: Todo[], sort: SortOption, order: "Asc" | 
 }
 
 
+// i can create an instance of todo directly with tag now, but i get error when trying to edit, when setting current value to input
