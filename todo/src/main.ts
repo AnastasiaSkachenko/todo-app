@@ -6,6 +6,7 @@ import { clearTodo, filterTodos, sortTodos, upsertTodo } from "./utils/helpersTo
 import type { FilterOption, Tag, Todo } from "./interfaces";
 import { fetchTags, upsertTag } from "./utils/helpersTags";
 import { generateCalendar, populateSelectors } from "./utils/calendar";
+import { session } from "./auth";
 
 const signUpBtn = document.getElementById("signUpBtn") as HTMLButtonElement;
 const signInBtn = document.getElementById("signInBtn") as HTMLButtonElement;
@@ -36,15 +37,16 @@ let currentTodo: string | undefined;
 let currentTag: string | undefined;
 export let currentTagsForm: Tag[] = []
 
-export const setInitial = async (todos: Todo[]) => {
-  console.log("Setting todo list:", todos);
-  todoList = todos;
+export const setInitial = async () => {
+  todoList = await filterTodos("all");
+  console.log("Setting todo list:", todoList);
+
   updateUI(todoList);
 }
 
 export const clearFormTags = () => currentTagsForm = [];
 
-setInitial(await filterTodos("all"));
+session?.user && setInitial();
 
 
 
@@ -52,7 +54,7 @@ updateUserForm.addEventListener("click", (event) => handleUpdateUserForm(event, 
 saveUser.addEventListener("click", (event) => handleSaveUser(event, saveUser));
 sendLink.addEventListener("click", () => handleSendLink(sendLink, currentUser.email ?? ""));
 signUpBtn.addEventListener("click", (event) => handleSignUp(event, signUpBtn));
-signInBtn.addEventListener("click", (event) => handleSignIn(event, signInBtn))
+signInBtn.addEventListener("click", (event) => handleSignIn(event))
 signOutBtn.addEventListener("click", handleSignOut)
 resetButton?.addEventListener("click", async () => await handleResetPassword(resetButton));
 createTodoTrigger.addEventListener("click", () => {

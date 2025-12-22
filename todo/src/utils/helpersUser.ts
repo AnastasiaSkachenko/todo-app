@@ -1,7 +1,7 @@
 import { resetPassword, savePassword, signIn, signOut, signUp, updateUser } from "../auth";
 const message = document.getElementById("message");
 import type { User } from '@supabase/supabase-js';
-import { showPage } from "./helpers";
+import { showPage, updateUI } from "./helpers";
 
 
 
@@ -53,11 +53,11 @@ export const  handleSignUp = async (event: PointerEvent,  button: HTMLButtonElem
 
 }
 
-export const  handleSignIn = async (event: PointerEvent, button: HTMLButtonElement) => {
+export const  handleSignIn = async (event: PointerEvent) => {
 	event.preventDefault();
 
-	const email = (document.getElementById("signInEmail") as HTMLInputElement).value;
-	const password = (document.getElementById("password") as HTMLInputElement).value;
+	let email = (document.getElementById("signInEmail") as HTMLInputElement).value;
+	let password = (document.getElementById("password") as HTMLInputElement).value;
 	const errorP = document.getElementById("signInError") as HTMLParagraphElement;
 
 
@@ -66,8 +66,8 @@ export const  handleSignIn = async (event: PointerEvent, button: HTMLButtonEleme
 		return;
 	}
 
-	document.body.style.cursor = "wait"
-	button.disabled = true
+	document.body.style.cursor = "wait";
+	(event.target as HTMLButtonElement).disabled = true
 
 	const { error } = await signIn(email, password);
 	if (error) {
@@ -78,11 +78,16 @@ export const  handleSignIn = async (event: PointerEvent, button: HTMLButtonEleme
 			message.style.display = "block";
 			message.innerText = "You are logged in successfully! We wish you productive day!"
 		}
-	}
+		(event.target as HTMLButtonElement).disabled = false;
 
-	errorP.innerText = ""
-	document.body.style.cursor = "default"
-	showPage("account")
+		errorP.innerText = "";
+		(event.target as HTMLButtonElement)
+		.closest("form")
+		?.reset();
+
+		document.body.style.cursor = "default"
+		updateUI()
+	}
 }
 
 export const  handleUpdateUserForm = async (event: PointerEvent, currentData: User) => {
@@ -181,7 +186,8 @@ export const handleResetPassword = async (button: HTMLButtonElement) => {
 };
 
 export const handleSignOut = async () => {
-	signOut()
+	await signOut()
+	showPage("signIn")
 
 	if (message) message.innerText = 'You have been successfully signed out!'
 }
