@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Todo</title>
     <link rel="stylesheet" href="./src/styles/main.css" />
+    <link rel="stylesheet" href="./src/styles/calendar.css" />
   </head>
   <body>
     <div id="account">
@@ -28,7 +29,8 @@
 
       <input type="date" id="filterSortDate" />
 
-      <button id="addTag">+</button>
+      <button id="addTag">+ (Tag)</button>
+      <button id="openCalendar">Calendar view</button>
       <fieldset>
         <legend>Tags:</legend>
         <ul id="tagsList"></ul>
@@ -62,6 +64,15 @@
       </div>
 
     </div>
+    <div id="calendar">
+      <button id="goBack">Go back to list view</button>
+      <label for="year">Year:</label>
+      <select id="year"></select>
+
+      <label for="month">Month:</label>
+      <select id="month"></select>
+      <div id="calendarContainer"></div>
+    </div>
     <form id="signUp">
       <label for="name">Name:</label>
       <input id="name" type="text" />
@@ -78,6 +89,7 @@
       <p id="error"></p>
 
       <button type="button" id="signUpBtn">Create Account</button>
+      <button type="reset" class="cancel">Cancel</button>
     </form>
 
     <form id="resetPasswordForm">
@@ -91,6 +103,8 @@
       <p id="errorResetPassword"></p>
 
       <button type="button" id="resetPasswordBtn">Reset password</button>
+      <button type="reset" class="cancel">Cancel</button>
+
     </form>
 
     <form id="signIn">
@@ -104,6 +118,8 @@
       <p id="signInError"></p>
 
       <button type="button" id="signInBtn">Sign in</button>
+      <button type="reset" class="cancel">Cancel</button>
+
     </form>
 
     <form id="updateUser">
@@ -117,6 +133,8 @@
       <p id="updateUserError"></p>
 
       <button type="button" id="saveUser">Save changes</button>
+      <button type="reset" class="cancel">Cancel</button>
+
     </form>
 
 
@@ -132,14 +150,14 @@
       <select id="todoTag"></select>
       <div id="currentTodosTags"></div>
 
-
-
       <label for="deadline">Deadline:</label>
       <input id="deadline" type="datetime-local" />
 
       <p id="errorTodo"></p>
 
       <button type="button" id="submitBtn">Submit</button>
+      <button type="reset" class="cancel">Cancel</button>
+
     </form>
 
     <form id="formTag">
@@ -156,6 +174,8 @@
       <p id="errorTag"></p>
 
       <button type="button" id="tagBtn">Submit</button>
+      <button type="reset" class="cancel">Cancel</button>
+
     </form>
 
 

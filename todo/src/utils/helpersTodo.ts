@@ -163,8 +163,10 @@ export const clearTodo = async (type: "byDate" | "all" | "done") => {
 	}
 };
 
-export const filterTodos = async (filter: FilterOption, date?: Date, tag?: string, deleteTag?: boolean) => {
-	console.log("Filtering todos by:", filter, date, tag, deleteTag);
+export const filterTodos = async (filter: FilterOption, date?: Date, tag?: string, deleteTag?: boolean, month?: number, year?: number) => {
+	console.log("Filtering todos by:", filter, date, tag, deleteTag, month, year);
+	const nextMonth = month && month < 12 ? month + 1 : 1;
+	const nextYear = year && month == 12 ? year + 1 : undefined;
 
 	let query = supabase
 	.from("Todos")
@@ -187,7 +189,7 @@ export const filterTodos = async (filter: FilterOption, date?: Date, tag?: strin
 		query = query.eq("done", false);
 	} else if (filter === "deadline") {
 		query = query.gte("deadline", `${parsedDate}T00:00:00.000Z`)
-    .lte("deadline", `${parsedDate}T23:59:59.999Z`);
+    	.lte("deadline", `${parsedDate}T23:59:59.999Z`);
 	} else if (filter === "tag" && tag) {
 		if (deleteTag) { 
 			const index = tagFilters.indexOf(tag);
@@ -228,6 +230,11 @@ export const filterTodos = async (filter: FilterOption, date?: Date, tag?: strin
 			query = query.in("id", todoIds);
 		}
 		
+	} else if (filter === "month") {
+		if (month || year) {
+			query = query.gte("deadline", `${year}-${month}-1T00:00:00.000Z`)
+			.lte("deadline", `${nextYear ?? year}-${nextMonth}-1T00:00:00.000Z`)
+		}
 	}
 
 	const { data, error } = await query;

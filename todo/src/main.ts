@@ -5,6 +5,7 @@ import { renderTodos, showPage, updateUI } from "./utils/helpers";
 import { clearTodo, filterTodos, sortTodos, upsertTodo } from "./utils/helpersTodo";
 import type { FilterOption, Tag, Todo } from "./interfaces";
 import { fetchTags, upsertTag } from "./utils/helpersTags";
+import { generateCalendar, populateSelectors } from "./utils/calendar";
 
 const signUpBtn = document.getElementById("signUpBtn") as HTMLButtonElement;
 const signInBtn = document.getElementById("signInBtn") as HTMLButtonElement;
@@ -22,6 +23,9 @@ const filterSortDateSelect = document.getElementById("filterSortDate") as HTMLSe
 const tagBtn = document.getElementById("tagBtn") as HTMLButtonElement;
 const tagFormTrigger = document.getElementById("addTag") as HTMLButtonElement;
 const tagForm = document.getElementById("formTag") as HTMLFormElement;
+const openCalendarBtn = document.getElementById("openCalendar") as HTMLButtonElement;
+const goBackBtn = document.getElementById('goBack') as HTMLButtonElement;
+const cancelBtns = document.getElementsByClassName("cancel") as HTMLCollectionOf<HTMLButtonElement>;
 
 let currentUser: User; 
 export const currentTags: Tag[] = [];
@@ -112,6 +116,14 @@ sortTodosSelect.addEventListener("change", async (event) => {
   )
 });
 
+openCalendarBtn.addEventListener("click", () => {
+  showPage("calendar");
+  populateSelectors()
+  generateCalendar(new Date().getFullYear(), new Date().getMonth() + 1)
+  goBackBtn.addEventListener("click", () => showPage("account"))
+})
+
+
 tagBtn.addEventListener("click", (event) => {
   if (event.target instanceof HTMLButtonElement && event.target.classList.contains("editTagBtn")) {
     toggleTagForm("Edit", event.target);
@@ -132,13 +144,33 @@ tagFormTrigger.addEventListener("click", () => {
 
 
 
+
+for (const btn of cancelBtns) {
+  btn.addEventListener("click", (event) => {
+    const button = event.currentTarget as HTMLButtonElement;
+    const form = button.closest("form") as HTMLFormElement | null;
+
+    if (form) {
+      form.style.display = "none";
+
+      showTodoForm = showTodoForm ? false : true;
+      showTagForm = showTagForm ? false : true;
+
+      updateUI()
+
+    }
+  });
+}
+
+
+
+
 const hash = window.location.hash;
 
 // Check if user landed via password reset link
 if (hash.includes("access_token") && hash.includes("refresh_token")) {
   console.log("access token and refresh token are in hash")
   setTimeout(() => {}, 5000)
-  console.log("Password reset flow triggered via email link");
   showPage("resetPasswordForm")
 
 } else  {
@@ -233,12 +265,12 @@ export const toggleTodoForm = async (innerText: string, editButton?: HTMLButtonE
 
   showTodoForm = !showTodoForm;
   if (showTodoForm) {
-  todoForm.style.display = "block";
-  button.innerText = "Hide";
+    todoForm.style.display = "block";
+    button.innerText = "Hide";
   } else {
-  todoForm.style.display = "none";
-  button.innerText = innerText || "ADD";
-  currentTodo = undefined;
+    todoForm.style.display = "none";
+    button.innerText = innerText || "ADD";
+    currentTodo = undefined;
   }
 
 

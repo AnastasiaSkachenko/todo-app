@@ -1,0 +1,46 @@
+#calendarContainer {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr); /* 7 days per week */
+  gap: 5px;
+}
+
+.day {
+  border: 1px solid #ccc;
+  min-height: 120px;
+  padding: 5px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.todos-container {
+  overflow-y: auto; /* scroll if too many todos */
+  max-height: 60px; /* adjust based on design */
+}
+
+.todo {
+  background: #f0f0f0;
+  margin: 2px 0;
+  padding: 2px 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.todo:hover .description-popup {
+  display: block;
+}
+
+.description-popup {
+  display: none;
+  position: absolute;
+  background: #fff;
+  border: 1px solid #ccc;
+  padding: 4px;
+  font-size: 12px;
+  z-index: 10;
+  width: 200px;
+}

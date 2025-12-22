@@ -15,6 +15,7 @@ export const showPage = (pageId: string) => {
 		document.getElementById("signIn"),
 		document.getElementById("updateUser"),
 		document.getElementById("resetPasswordForm"),
+		document.getElementById("calendar")
   ].filter(Boolean) as HTMLElement[]; // filter out nulls
 
   // Hide all screens

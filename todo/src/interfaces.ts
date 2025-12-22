@@ -21,5 +21,5 @@ export interface Todo {
     tags?: Tag[]
 }
 
-export type FilterOption = "all" | "dateCreated" | "done"  | "notDone" | "deadline" | "tag";
+export type FilterOption = "all" | "dateCreated" | "done"  | "notDone" | "deadline" | "tag" | "month";
 export type SortOption =  "all" | "dateCreated" | "deadline";
