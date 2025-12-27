@@ -1,7 +1,7 @@
 import { supabase } from "./utils/supabaseClient";
 import { handleSignUp, handleSignOut, handleSignIn, handleUpdateUserForm, handleSaveUser, handleResetPassword, handleSendLink  } from "./utils/helpersUser";
 import type { User } from '@supabase/supabase-js';
-import { renderTodos, showPage, updateUI } from "./utils/helpers";
+import {  renderTodos, showPage, tagHTML, updateUI } from "./utils/helpers";
 import { clearTodo, filterTodos, sortTodos, upsertTodo } from "./utils/helpersTodo";
 import type { FilterOption, Tag, Todo } from "./interfaces";
 import { fetchTags, upsertTag } from "./utils/helpersTags";
@@ -23,15 +23,12 @@ const sortTodosSelect = document.getElementById("sortTodos") as HTMLSelectElemen
 const filterSortDateSelect = document.getElementById("filterSortDate") as HTMLSelectElement;
 const tagBtn = document.getElementById("tagBtn") as HTMLButtonElement;
 const tagFormTrigger = document.getElementById("addTag") as HTMLButtonElement;
-const tagForm = document.getElementById("formTag") as HTMLFormElement;
 const openCalendarBtn = document.getElementById("openCalendar") as HTMLButtonElement;
 const goBackBtn = document.getElementById('goBack') as HTMLButtonElement;
 const cancelBtns = document.getElementsByClassName("cancel") as HTMLCollectionOf<HTMLButtonElement>;
 
 let currentUser: User; 
 export const currentTags: Tag[] = [];
-export let showTodoForm = false;
-export let showTagForm = false;
 let todoList: Todo[];
 let currentTodo: string | undefined;
 let currentTag: string | undefined;
@@ -58,15 +55,21 @@ signInBtn.addEventListener("click", (event) => handleSignIn(event))
 signOutBtn.addEventListener("click", handleSignOut)
 resetButton?.addEventListener("click", async () => await handleResetPassword(resetButton));
 createTodoTrigger.addEventListener("click", () => {
-  toggleTodoForm("Hide");
+    
+  modals.get("todo")?.open()
+
+  toggleTodoForm();
+
 });
 
 upsertTodoButton.addEventListener("click", (event) => {
+  modals.get("todo")?.close()
   upsertTodo(event, currentTodo)
   if (event.target instanceof HTMLButtonElement && event.target.classList.contains("editBtn")) {
-    toggleTodoForm("Edit", event.target);
+    modals.get("todo")?.open()
+    toggleTodoForm(event.target);
   } else {
-    toggleTodoForm("Add");
+    toggleTodoForm();
   }
 })
 
@@ -128,9 +131,9 @@ openCalendarBtn.addEventListener("click", () => {
 
 tagBtn.addEventListener("click", (event) => {
   if (event.target instanceof HTMLButtonElement && event.target.classList.contains("editTagBtn")) {
-    toggleTagForm("Edit", event.target);
+    toggleTagForm(event.target);
   } else {
-    toggleTagForm("Add");
+    toggleTagForm();
   }
 
   if (tagBtn.dataset.action == "edit") {
@@ -141,7 +144,8 @@ tagBtn.addEventListener("click", (event) => {
 }) 
 
 tagFormTrigger.addEventListener("click", () => {
-  toggleTagForm("Hide");
+  modals.get("tag")?.open();
+  toggleTagForm();
 });
 
 
@@ -153,13 +157,7 @@ for (const btn of cancelBtns) {
     const form = button.closest("form") as HTMLFormElement | null;
 
     if (form) {
-      form.style.display = "none";
-
-      showTodoForm = showTodoForm ? false : true;
-      showTagForm = showTagForm ? false : true;
-
       updateUI()
-
     }
   });
 }
@@ -206,29 +204,21 @@ currentTodosTags.addEventListener("click", (event: MouseEvent) => {
 
 
 
-const showCurrentTodosTags = () => {
+const showCurrentTodosTags =  () => {
   currentTodosTags.innerHTML = "";
 
   currentTagsForm.forEach(tag => {
-    currentTodosTags.innerHTML += `
-      <button
-        type="button"
-        class="buttonTagInForm"
-        data-tagId="${tag.id}"
-      >
-        ${tag.name}
-      </button>
-    `;
+    currentTodosTags.innerHTML += tagHTML(tag,false);
   });
 };
 
 
-export const toggleTodoForm = async (innerText: string, editButton?: HTMLButtonElement ) => {
+export const toggleTodoForm = async ( editButton?: HTMLButtonElement ) => {
 
-  const todoForm = document.getElementById("formTodo") as HTMLFormElement;
   const selectTags = document.getElementById("todoTag") as HTMLSelectElement;
 
-  const button = editButton ?? createTodoTrigger;
+
+
   const tagsFetched = await fetchTags()
   selectTags.innerHTML = `<option value="-">Select a tag</option>`
 
@@ -249,8 +239,6 @@ export const toggleTodoForm = async (innerText: string, editButton?: HTMLButtonE
 
     // check if tag already exists in current form
     const exists = currentTagsForm.some(t => t.id == tag.id);
-    console.log("tag", tag)
-    console.log(exists, "exists")
 
     if (!exists) {
       console.log("Adding tag:", tag.name);
@@ -265,15 +253,6 @@ export const toggleTodoForm = async (innerText: string, editButton?: HTMLButtonE
 
 
 
-  showTodoForm = !showTodoForm;
-  if (showTodoForm) {
-    todoForm.style.display = "block";
-    button.innerText = "Hide";
-  } else {
-    todoForm.style.display = "none";
-    button.innerText = innerText || "ADD";
-    currentTodo = undefined;
-  }
 
 
   
@@ -327,27 +306,13 @@ export const toggleTodoForm = async (innerText: string, editButton?: HTMLButtonE
 }
 
 
-export const toggleTagForm = async (innerText: string, editButton?: HTMLButtonElement ) => {
-  const button = editButton ?? tagFormTrigger;
-
-  showTagForm = !showTagForm;
-  console.log("showTagForm after toggle:", showTagForm);
-
-  if (showTagForm) {
-  tagForm.style.display = "block";
-  button.innerText = "Hide";
-  } else {
-  tagForm.style.display = "none";
-  button.innerText = innerText || "ADD";
-  currentTag = undefined;
-  }
+export const toggleTagForm = async ( editButton?: HTMLButtonElement ) => {
   
   if (!editButton) return;
   currentTag = editButton.dataset.id;
   tagBtn.dataset.action = "edit";
   tagBtn.dataset.id = currentTag;
 
-  console.log("Opening edit for tag ID:", currentTag);
   const { data, error } = await supabase
   .from("Tags")
   .select("*")
@@ -368,4 +333,86 @@ export const toggleTagForm = async (innerText: string, editButton?: HTMLButtonEl
   colorInput.value = data.color;
 }
 
+class Modal {
+  private overlay: HTMLElement;
+  private modal: HTMLElement;
+  private lastFocused: HTMLElement | null = null;
 
+  constructor(overlay: HTMLElement) {
+    this.overlay = overlay;
+    this.modal = overlay.querySelector(".modal") as HTMLElement;
+
+    this.handleKeydown = this.handleKeydown.bind(this);
+
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) this.close();
+    });
+
+    overlay.querySelectorAll("[data-close]").forEach(btn =>
+      btn.addEventListener("click", () => this.close())
+    );
+  }
+
+  open() {
+    this.lastFocused = document.activeElement as HTMLElement;
+    this.overlay.classList.remove("hidden");
+
+    const focusable = this.getFocusable();
+    focusable[0]?.focus();
+
+    document.addEventListener("keydown", this.handleKeydown);
+    document.body.style.overflow = "hidden";
+  }
+
+  close() {
+    this.overlay.classList.add("hidden");
+    document.removeEventListener("keydown", this.handleKeydown);
+    document.body.style.overflow = "";
+    this.lastFocused?.focus();
+  }
+
+  private handleKeydown(e: KeyboardEvent) {
+    if (e.key === "Escape") this.close();
+    if (e.key === "Tab") this.trapFocus(e);
+  }
+
+  private getFocusable(): HTMLElement[] {
+    return Array.from(
+      this.modal.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      )
+    );
+  }
+
+  private trapFocus(e: KeyboardEvent) {
+    const focusable = this.getFocusable();
+    if (focusable.length === 0) return;
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+}
+
+
+
+export const modals = new Map<string, Modal>();
+
+document.querySelectorAll<HTMLElement>("[data-modal]").forEach(overlay => {
+  const name = overlay.dataset.modal!;
+  modals.set(name, new Modal(overlay));
+});
+
+document.querySelectorAll<HTMLElement>("[data-open-modal]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const name = btn.dataset.openModal!;
+    modals.get(name)?.open();
+  });
+});

@@ -1,6 +1,6 @@
 import { session } from "../auth";
 import type { Tag, Todo } from "../interfaces";
-import {  currentTags, toggleTagForm, toggleTodoForm } from "../main";
+import {  currentTags, modals, toggleTagForm, toggleTodoForm } from "../main";
 import { deleteTodo, filterTodos, toggleDoneTodo } from "./helpersTodo";
 import { deleteTag, fetchTags } from "./helpersTags";
 
@@ -69,24 +69,27 @@ export const renderTodos = async (todos: Todo[]) => {
 		document.getElementById("message")!.innerText = "";
 	}
 
-	const todoListElement = document.getElementById("todoTodayList") as HTMLUListElement;
+	const todoListElement = document.getElementById("todoList") as HTMLUListElement;
 	todoListElement.innerHTML = "";
 
 	todos?.forEach((todo: Todo) => {
 		todoListElement.innerHTML += `
 			<li>
 				<div>
-					<h3>
-						${todo.name}
+					<div class="todo-header">
+						<h3 class="d-inline">
+							${todo.name}
+						</h3>
 						<button class="toggleDoneBtn" data-id="${todo.id}"data-done="${todo.done}"> ${todo.done ? "✅" : "❌"}</button>
-					</h3>
+					</div>
+
 					${todo.description ? `<p>${todo.description}</p>` : ""}
-					${(todo.tags && (todo.tags.length > 0)) ? todo.tags.map(tag => tagHTML(tag, false)).join(", ") : ""}
+					${(todo.tags && (todo.tags.length > 0)) ? "<div class='todoTagsList'>" + todo.tags.map(tag => tagHTML(tag, false)).join("") +  "</div>"  : ""}
 					<p>Deadline: ${parseDateTimeLocal(todo.deadline)}</p>
 				</div>
-				<div>
-					<button class="editBtn" data-id=${todo.id}>Edit</button>
-					<button class="deleteBtn" data-id=${todo.id}>Delete</button>
+				<div class="btn-end">
+					<button class="editBtn btn" data-id=${todo.id}>Edit</button>
+					<button class="deleteBtn btn" data-id=${todo.id}>Delete</button>
 				</div>
 				<hr/>
 			</li>
@@ -95,7 +98,10 @@ export const renderTodos = async (todos: Todo[]) => {
 
 	const editTodoButtons = document.getElementsByClassName("editBtn") as HTMLCollectionOf<HTMLButtonElement>;
 	for (const btn of editTodoButtons) {
-		btn.addEventListener("click", () => toggleTodoForm("Hide", btn));
+		btn.addEventListener("click", () => {
+			toggleTodoForm(btn);
+			modals.get("todo")?.open()
+		});
 	}
 
 	const deleteTodoButtons = document.getElementsByClassName("deleteBtn") as HTMLCollectionOf<HTMLButtonElement>;
@@ -118,19 +124,20 @@ export const renderTodos = async (todos: Todo[]) => {
 export const tagHTML = (tag:Tag, inHeader: boolean) => {
 	return inHeader 
 	?  `
-		<li>
-			<label for=${`filterByTag-${tag.id}`}>${tag.name}</label>
-			<input data-id=${tag.id} type="checkbox"  class="filterByTag"  ${currentTags.find(ctag => ctag.id == tag.id) ? "checked" : ""} />
-			<p>${tag.description ?? ""}</p>
-			<button class="editTagBtn" data-id=${tag.id}>Edit</button>
-			<button class="deleteTagBtn" data-id=${tag.id}>Delete</button>
+		<li class="tag-el">			
+			<input data-id=${tag.id} id=${`filterByTag-${tag.id}`} type="checkbox"  class="filterByTag tag-input"  ${currentTags.find(ctag => ctag.id == tag.id) ? "checked" : ""} />
+			<label class="tag-label popup-anchor" for=${`filterByTag-${tag.id}`}>${tag.name}</label>
+			<p class="tag-description">${tag.description ?? ""}</p>
+	
+			<button class="editTagBtn" data-id=${tag.id}><i class="fa-solid fa-pen"></i></button>
+			<button class="deleteTagBtn" data-id=${tag.id}><i class="fa-solid fa-trash"></i></button>
 		</li>
 	`
 	: `
-		<>
-			<label for=${`filterByTag-${tag.id}`}>${tag.name}</label>
-			<input data-id=${tag.id} type="checkbox"  class="filterByTag"  ${currentTags.find(ctag => ctag.id == tag.id) ? "checked" : ""} />
-		</>
+		<div class="tag-el in-todo">
+			<input data-id=${tag.id} type="checkbox"  class="filterByTag tag-input"  ${currentTags.find(ctag => ctag.id == tag.id) ? "checked" : ""} />
+			<label class="tag-label" for=${`filterByTag-${tag.id}`}>${tag.name}</label>
+		</div>
 	`
 }
 
@@ -147,7 +154,10 @@ export const renderTags = async () => {
 
 	const editTagButtons = document.getElementsByClassName("editTagBtn") as HTMLCollectionOf<HTMLButtonElement>;
 	for (const btn of editTagButtons) {
-		btn.addEventListener("click", () => toggleTagForm("Hide", btn));
+		btn.addEventListener("click", () => {
+			modals.get("tag")?.open()
+			toggleTagForm(btn)
+		});
 	}
 
 	const deleteTagButtons = document.getElementsByClassName("deleteTagBtn") as HTMLCollectionOf<HTMLButtonElement>;

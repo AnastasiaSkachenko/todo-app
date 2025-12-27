@@ -4,12 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Todo</title>
-    <link rel="stylesheet" href="./src/styles/main.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=BBH+Bogle&family=Oswald:wght@200..700&display=swap" rel="stylesheet">    <link rel="stylesheet" href="./src/styles/main.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
     <link rel="stylesheet" href="./src/styles/calendar.css" />
   </head>
   <body>
     <div id="account">
-      <p id="greeting"></p>
+      <h2 class="header-text" id="greeting"></h2>
 
       <select id="filterTodos">
         <option value="all">All</option>
@@ -29,15 +38,15 @@
 
       <input type="date" id="filterSortDate" />
 
-      <button id="addTag">+ (Tag)</button>
-      <button id="openCalendar">Calendar view</button>
+      <button class="btn" id="addTag">+ (Tag)</button>
+      <button class="btn" id="openCalendar">Calendar view</button>
       <fieldset>
         <legend>Tags:</legend>
         <ul id="tagsList"></ul>
       </fieldset>
-      <button id="createTodoTrigger">Add</button>
-      <ul id="todoTodayList"></ul>
-      <button id="clearTodosBtn">Clear</button>
+      <button class="btn" id="createTodoTrigger">Add</button>
+      <ul id="todoList"></ul>
+      <button class="btn" id="clearTodosBtn">Clear</button>
       <fieldset id="deleteOptions">
         <legend>Select what todos you want to delete:</legend>
 
@@ -58,14 +67,15 @@
       </fieldset>
 
       <div class="user-menu">
-        <button id="updateUserForm">Update User</button>
-        <button id="sendLink">Reset password</button>      
-        <button id="signOut">Sign out</button>
+        <button class="btn" id="updateUserForm">Update User</button>
+        <button class="btn" id="sendLink">Reset password</button>      
+        <button class="btn" id="signOut">Sign out</button>
       </div>
 
     </div>
+
     <div id="calendar">
-      <button id="goBack">Go back to list view</button>
+      <button class="btn" id="goBack">Go back to list view</button>
       <label for="year">Year:</label>
       <select id="year"></select>
 
@@ -73,7 +83,8 @@
       <select id="month"></select>
       <div id="calendarContainer"></div>
     </div>
-    <form id="signUp">
+
+    <form class="user-form" id="signUp">
       <label for="name">Name:</label>
       <input id="name" type="text" />
 
@@ -88,11 +99,11 @@
 
       <p id="error"></p>
 
-      <button type="button" id="signUpBtn">Create Account</button>
-      <button type="reset" class="cancel">Cancel</button>
+      <button class="btn" type="button" id="signUpBtn">Create Account</button>
+      <button type="reset" class="cancel btn">Cancel</button>
     </form>
 
-    <form id="resetPasswordForm">
+    <form class="user-form"  id="resetPasswordForm">
 
       <label for="password1Reset">Password:</label>
       <input id="password1Reset" type="text" />
@@ -102,12 +113,12 @@
 
       <p id="errorResetPassword"></p>
 
-      <button type="button" id="resetPasswordBtn">Reset password</button>
-      <button type="reset" class="cancel">Cancel</button>
+      <button class="btn" type="button" id="resetPasswordBtn">Reset password</button>
+      <button type="reset" class="cancel btn">Cancel</button>
 
     </form>
 
-    <form id="signIn">
+    <form class="user-form"  id="signIn">
 
       <label for="email">Email:</label>
       <input id="signInEmail" type="text" />
@@ -117,12 +128,12 @@
 
       <p id="signInError"></p>
 
-      <button type="button" id="signInBtn">Sign in</button>
-      <button type="reset" class="cancel">Cancel</button>
+      <button class="btn" type="button" id="signInBtn">Sign in</button>
+      <button type="reset" class="cancel btn">Cancel</button>
 
     </form>
 
-    <form id="updateUser">
+    <form class="user-form"  id="updateUser">
 
       <label for="updateName">Name:</label>
       <input id="updateName" type="text" />
@@ -132,51 +143,54 @@
 
       <p id="updateUserError"></p>
 
-      <button type="button" id="saveUser">Save changes</button>
-      <button type="reset" class="cancel">Cancel</button>
+      <button class="btn" type="button" id="saveUser">Save changes</button>
+      <button type="reset" class="cancel btn">Cancel</button>
 
     </form>
 
 
     <p id="message"></p>
 
-    <form id="formTodo">
-      <label for="nameTodo">Name:</label>
-      <input id="nameTodo" type="text" />
+    <div  data-modal="todo"  class="overlay hidden">
+      <form class="modal" role="dialog" aria-modal="true" id="formTodo">
+        <h3>Todo form</h3>
+        <label class="full-line" for="nameTodo">Name:</label>
+        <input class="base-input" id="nameTodo" type="text" />
 
-      <label for="description">Description:</label>
-      <input id="description" type="text" />
+        <label class="full-line" for="description">Description:</label>
+        <input class="base-input" id="description" type="text" />
 
-      <select id="todoTag"></select>
-      <div id="currentTodosTags"></div>
+        <select class="full-line" id="todoTag"></select>
+        <div id="currentTodosTags"></div>
 
-      <label for="deadline">Deadline:</label>
-      <input id="deadline" type="datetime-local" />
+        <label for="deadline">Deadline:</label>
+        <input class="base-input" id="deadline" type="datetime-local" />
 
-      <p id="errorTodo"></p>
+        <p id="errorTodo"></p>
 
-      <button type="button" id="submitBtn">Submit</button>
-      <button type="reset" class="cancel">Cancel</button>
+        <button class="btn beige-bg margin-auto" type="button" id="submitBtn">Submit</button>
 
-    </form>
+      </form>
+    </div>
 
-    <form id="formTag">
-      <label for="nameTag">Name:</label>
-      <input id="nameTag" type="text" />
+    <div data-modal="tag"  class="overlay hidden">
+      <form class="modal" role="dialog" aria-modal="true" id="formTag">
+        <label for="nameTag" class="full-line" >Name:</label>
+        <input id="nameTag" class="base-input" type="text" />
 
-      <label for="descriptionTag">Description:</label>
-      <input id="descriptionTag" type="text" />
+        <label for="descriptionTag" class="full-line" >Description:</label>
+        <input id="descriptionTag" class="base-input"  type="text" />
 
 
-      <label for="color">Color:</label>
-      <input id="color" type="color" />
+        <label for="color" >Color:</label>
+        <input id="color" class="color-input"  type="color" />
 
-      <p id="errorTag"></p>
+        <p id="errorTag"></p>
 
-      <button type="button" id="tagBtn">Submit</button>
-      <button type="reset" class="cancel">Cancel</button>
+        <button type="button" class="btn beige-bg margin-auto" id="tagBtn">Submit</button>
 
-    </form>
+      </form>
+    </div>
 
 
   </body>
