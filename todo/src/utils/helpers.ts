@@ -46,23 +46,20 @@ export const updateUI = async (todos?: Todo[]) => {
 		return 
 	} 
 
-	console.log("Updating UI with todos:", todos);
+	let todosDisplay = todos ?? (await  filterTodos("all") ?? [])
 
-	let todosDisplay = todos ?? await  filterTodos("all")
-
-	renderTodos(todosDisplay);
+	renderTodos(todosDisplay instanceof Array ? todosDisplay : []);
 	renderTags()
 
 	const greeting = document.getElementById("greeting") as HTMLParagraphElement;
 	greeting.innerText = `Welcome back, ${session.user.user_metadata.name}!`
 	showPage('account')
-
 }
 
 export const renderTodos = async (todos: Todo[]) => {
-	const tags = await fetchTags()
+	const tagsResponse = await fetchTags();
+	const tags = "error" in tagsResponse ? [] : tagsResponse;
 
-	console.log("render todos", todos)
 	if (todos?.length === 0) {
 		document.getElementById("message")!.innerText = "No todos match your filter criteria.";
 	} else {
@@ -77,10 +74,10 @@ export const renderTodos = async (todos: Todo[]) => {
 			<li>
 				<div>
 					<div class="todo-header">
-						<h3 class="d-inline">
+						<h3>
 							${todo.name}
 						</h3>
-						<button class="toggleDoneBtn" data-id="${todo.id}"data-done="${todo.done}"> ${todo.done ? "✅" : "❌"}</button>
+						<button class="toggleDoneBtn" data-id="${todo.id}" data-done="${todo.done}"> ${todo.done ? "✅" : "❌"}</button>
 					</div>
 
 					${todo.description ? `<p>${todo.description}</p>` : ""}
@@ -88,8 +85,8 @@ export const renderTodos = async (todos: Todo[]) => {
 					<p>Deadline: ${parseDateTimeLocal(todo.deadline)}</p>
 				</div>
 				<div class="btn-end">
-					<button class="editBtn btn" data-id=${todo.id}>Edit</button>
-					<button class="deleteBtn btn" data-id=${todo.id}>Delete</button>
+					<button class="editBtn btn" data-id="${todo.id}">Edit</button>
+					<button class="deleteBtn btn" data-id="${todo.id}">Delete</button>
 				</div>
 				<hr/>
 			</li>
@@ -99,6 +96,7 @@ export const renderTodos = async (todos: Todo[]) => {
 	const editTodoButtons = document.getElementsByClassName("editBtn") as HTMLCollectionOf<HTMLButtonElement>;
 	for (const btn of editTodoButtons) {
 		btn.addEventListener("click", () => {
+			document.querySelectorAll<HTMLParagraphElement>(".error").forEach(el => el.textContent = "");
 			toggleTodoForm(btn);
 			modals.get("todo")?.open()
 		});
@@ -106,15 +104,27 @@ export const renderTodos = async (todos: Todo[]) => {
 
 	const deleteTodoButtons = document.getElementsByClassName("deleteBtn") as HTMLCollectionOf<HTMLButtonElement>;
 	for (const btn of deleteTodoButtons) {
-		btn.addEventListener("click", (event) => deleteTodo(event, btn.dataset.id ?? ""));
+		btn.addEventListener("click", async (event) => {
+			const result = await deleteTodo(event, btn.dataset.id ?? "");
+			if ("error" in result) {
+				showError(document, result.error ?? "");
+			} else {
+				updateUI();
+			}
+		});
 	}
 
 	const toggleDoneButtons = document.getElementsByClassName("toggleDoneBtn") as HTMLCollectionOf<HTMLButtonElement>;
 	for (const btn of toggleDoneButtons) {
-		btn.addEventListener("click", (event) => {
+		btn.addEventListener("click", async (event) => {
 			const id = btn.dataset.id!;
 			const done = btn.dataset.done === "true";
-			toggleDoneTodo(event, id, done);
+			const result = await toggleDoneTodo(event, id, done);
+			if (result && "error" in result) {
+				showError(document, result.error);
+			} else {
+				updateUI();
+			}
 		});
 	}
 	toggleTag(tags)
@@ -144,8 +154,14 @@ export const tagHTML = (tag:Tag, inHeader: boolean) => {
 
 
 export const renderTags = async () => {
-	const tags = await fetchTags()
+	const tagsResponse = await fetchTags();
+	
+	if ("error" in tagsResponse) {
+		showError(document, tagsResponse.error);
+		return;
+	}
 
+	const tags = tagsResponse;
 	const tagsElement = document.getElementById("tagsList") as HTMLUListElement;
 	tagsElement.innerHTML = "";
 	tags.forEach((tag) => {
@@ -155,6 +171,7 @@ export const renderTags = async () => {
 	const editTagButtons = document.getElementsByClassName("editTagBtn") as HTMLCollectionOf<HTMLButtonElement>;
 	for (const btn of editTagButtons) {
 		btn.addEventListener("click", () => {
+			document.querySelectorAll<HTMLParagraphElement>(".error").forEach(el => el.textContent = "");
 			modals.get("tag")?.open()
 			toggleTagForm(btn)
 		});
@@ -162,7 +179,14 @@ export const renderTags = async () => {
 
 	const deleteTagButtons = document.getElementsByClassName("deleteTagBtn") as HTMLCollectionOf<HTMLButtonElement>;
 	for (const btn of deleteTagButtons) {
-		btn.addEventListener("click", (event) => deleteTag(event, btn.dataset.id ?? ""));
+		btn.addEventListener("click", async (event) => {
+			const result = await deleteTag(event, btn.dataset.id ?? "");
+			if ("error" in result) {
+				showError(document, result.error ?? "");
+			} else {
+				updateUI();
+			}
+		});
 	}
 
 	toggleTag(tags)
@@ -172,17 +196,25 @@ const toggleTag = (tags: Tag[]) => {
 	const filterByTagInput = document.getElementsByClassName("filterByTag") as HTMLCollectionOf<HTMLInputElement>;
 	for (const input of filterByTagInput) {
 		input.addEventListener("change", async () => {
-			console.log("Tag filter changed:", input.dataset.id, input.checked);
+			const response = await filterTodos("tag", undefined, input.dataset.id ?? "");
+			
+			if ("error" in response) {
+				showError(document, response.error);
+				return;
+			}
+
 			if (input.checked){
-				renderTodos(await filterTodos("tag", undefined ,  input.dataset.id ?? ""));
+				renderTodos(response);
 				currentTags.push(tags.find(t => t.id == input.dataset.id)!);
 			} else {
-				renderTodos(await filterTodos("tag", undefined ,  input.dataset.id ?? "", true));
+				const deleteResponse = await filterTodos("tag", undefined, input.dataset.id ?? "", true);
+				if ("error" in deleteResponse) {
+					showError(document, deleteResponse.error);
+					return;
+				}
+				renderTodos(deleteResponse);
 				currentTags.splice(currentTags.findIndex(t => t.id == input.dataset.id), 1);
 			};
-			console.log("current tags", currentTags)
-			console.log("input.dataset.id", input.dataset.id)
-			console.log("tags fetched", tags)
 			updateTags()
 		});
 	}
@@ -195,3 +227,12 @@ const updateTags = () => {
 	}
 }
 
+
+export function showError(container: HTMLElement | Document = document, message: string) {
+  const errorElement = container.querySelector<HTMLParagraphElement>(".error");
+  if (errorElement) {
+    errorElement.textContent = message;
+  } else {
+    console.error("Error element not found:", message);
+  }
+}

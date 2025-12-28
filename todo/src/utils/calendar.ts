@@ -8,54 +8,43 @@ const monthSelect = document.getElementById("month") as HTMLSelectElement;
 
 
 export const populateSelectors = () => {
-    // Populate year select (e.g., from 2020 to 2030)
-    const currentYear = new Date().getFullYear();
-    for (let y = currentYear - 5; y <= currentYear + 5; y++) {
-        const option = document.createElement("option");
-        option.value = y.toString();      // numeric year
-        option.textContent = y.toString(); // display year
-        yearSelect.appendChild(option);
-    }
-    yearSelect.value = currentYear.toString();
+  const currentYear = new Date().getFullYear();
+  for (let y = currentYear - 5; y <= currentYear + 5; y++) {
+      const option = document.createElement("option");
+      option.value = y.toString();     
+      option.textContent = y.toString(); 
+      yearSelect.appendChild(option);
+  }
+  yearSelect.value = currentYear.toString();
 
-    // Populate month select with names
-    const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
-    ];
+  const monthNames = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+  ];
 
-    monthSelect.innerHTML = ""
-    monthNames.forEach((name, index) => {
-        const option = document.createElement("option");
-        option.value = (index + 1).toString(); // month number (1-12)
-        option.textContent = name; // display name
-        monthSelect.appendChild(option);
-    });
+  monthSelect.innerHTML = ""
+  monthNames.forEach((name, index) => {
+      const option = document.createElement("option");
+      option.value = (index + 1).toString(); // month number (1-12)
+      option.textContent = name; 
+      monthSelect.appendChild(option);
+  });
 
-    // Set current month
-    monthSelect.value = (new Date().getMonth() + 1).toString();
-
-    // Example: reading the selected year and month
-    yearSelect.addEventListener("change", () => console.log(yearSelect.value));
-    monthSelect.addEventListener("change", () => console.log(monthSelect.value));
+  monthSelect.value = (new Date().getMonth() + 1).toString();
 }
 
 monthSelect.addEventListener("change", () => {
-    console.log("trach change of month \n\n\n", monthSelect.value)
-    generateCalendar(Number(yearSelect.value), Number(monthSelect.value))
+  generateCalendar(Number(yearSelect.value), Number(monthSelect.value))
 })
 
 yearSelect.addEventListener("change", () => {
-    generateCalendar(Number(yearSelect.value), Number(monthSelect.value))
+  generateCalendar(Number(yearSelect.value), Number(monthSelect.value))
 })
 
 export async function generateCalendar(year: number, month: number) {
   calendarContainer.innerHTML = "";
 
-  // JS months are 0-indexed
-  const jsMonth = month - 1;
-
-  const lastDay = new Date(year, jsMonth + 1, 0); // last day of month
+  const lastDay = new Date(year, month, 0); // last day of month
   const totalDays = lastDay.getDate();
 
   for (let day = 1; day <= totalDays; day++) {
@@ -76,7 +65,6 @@ export async function generateCalendar(year: number, month: number) {
 
   renderTodos(await filterTodos("month", undefined, undefined, undefined, month, year));
 }
-
 
 
 export function renderTodos(todos: Todo[]) {

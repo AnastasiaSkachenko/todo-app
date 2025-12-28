@@ -24,12 +24,9 @@ export const upsertTodo = async (event: PointerEvent, todoId?: string) => {
 
   // Basic validation (optional but very helpful!)
   if (!name || !deadline) {
-    console.error("Missing required fields: name or deadline.");
-    return;
+    return {error:"Missing required fields: name or deadline."};
   }
 
-
-  console.log("id:", todoId, "done:", done);
   // Build row cleanly
   const todo = {
     id: todoId || undefined,
@@ -48,7 +45,7 @@ export const upsertTodo = async (event: PointerEvent, todoId?: string) => {
 			.select()
 			.single<Todo>();
 
-		if (error) throw error;
+		if (error) return {error: error.message};
 
 		// 2. Extract tag IDs
 		const tagIds = currentTagsForm.map(tag => tag.id);
@@ -66,7 +63,7 @@ export const upsertTodo = async (event: PointerEvent, todoId?: string) => {
 					onConflict: "todo_id,tag_id"
 				});
 
-			if (upsertError) throw upsertError;
+			if (upsertError) return {error: upsertError.message};
 		}
 
 		// 4. Delete removed relations
@@ -82,7 +79,7 @@ export const upsertTodo = async (event: PointerEvent, todoId?: string) => {
 					: "()"
 			);
 
-		if (deleteError) throw deleteError;
+		if (deleteError) return {error: deleteError.message};
 
 		// 5. Reset UI
 		nameInput.value = "";
@@ -94,7 +91,7 @@ export const upsertTodo = async (event: PointerEvent, todoId?: string) => {
 		return currentTodo;
 
 	} catch (error) {
-		console.error("Failed to save todo:", error);
+		return {error: "Error while saving todo"};
 	}
 };
 
@@ -106,14 +103,12 @@ export const toggleDoneTodo = async (event: PointerEvent, todoId: string, done: 
 			.update({ done: !done })
 			.eq("id", todoId);
 			
-		if (error) throw error;
+		if (error) return {error: error.message};
+		updateUI();
 
 	} catch (error) {
-		console.error("Supabase error:", error);
-		return null;
+		return {error: "Error while updating todo"};
 	}
-
-	updateUI();
 }
 
 export const deleteTodo = async (event: PointerEvent, todoId: string) => {
@@ -124,14 +119,13 @@ export const deleteTodo = async (event: PointerEvent, todoId: string) => {
       .from("Todos")
       .delete()
 			.eq("id", todoId);
-    if (error) throw error;
+    if (error) return {error: error.message};
 
-    // Clear inputs
     updateUI();
+    return { success: true };
 
   } catch (error) {
-    console.error("Supabase error:", error);
-    return null;
+    return {error: "Error while deleting todo"};
   }
 };
 
@@ -153,18 +147,16 @@ export const clearTodo = async (type: "byDate" | "all" | "done") => {
 		// Execute the query here
 		const { error } = await query;
 
-		if (error) throw error;
+		if (error) return {error: error.message};
 
 		updateUI();
 
 	} catch (error) {
-		console.error("Supabase error:", error);
-		return null;
+        return {error: "Error while clearing Todo"};
 	}
 };
 
 export const filterTodos = async (filter: FilterOption, date?: Date, tag?: string, deleteTag?: boolean, month?: number, year?: number) => {
-	console.log("Filtering todos by:", filter, date, tag, deleteTag, month, year);
 	const nextMonth = month && month < 12 ? month + 1 : 1;
 	const nextYear = year && month == 12 ? year + 1 : undefined;
 
@@ -207,10 +199,10 @@ export const filterTodos = async (filter: FilterOption, date?: Date, tag?: strin
 				.from("todo_tag")
 				.select("todo_id, tag_id")
 				.in("tag_id", tagFilters);
+	
 
 			if (error) {
-				console.error(error);
-				return [];
+				return {error: "Error filtering todos"}
 			}
 
 			// Count how many filtered tags each todo has
@@ -241,11 +233,8 @@ export const filterTodos = async (filter: FilterOption, date?: Date, tag?: strin
 
 
 	if (error) {
-		console.error("Supabase error:", error);
-		return [];
+        return {error: error.message};
 	}
-
-	console.log("Filtered todos:", data);
 
 	const todosWithTags: Todo[] = (data ?? []).map((todo: any) => ({
 	...todo,
@@ -257,7 +246,6 @@ export const filterTodos = async (filter: FilterOption, date?: Date, tag?: strin
 
 
 export const sortTodos = async (todos: Todo[], sort: SortOption, order: "Asc" | "Desc") => {
-	console.log(`Sorting todos ${todos} by ${sort} in ${order} order`);
 	if (sort === "dateCreated") {
 		todos.sort((a, b) => {
 			const dateA = new Date(a.created_at).getTime();
@@ -272,10 +260,5 @@ export const sortTodos = async (todos: Todo[], sort: SortOption, order: "Asc" | 
 		});
 		return todos;
 	}
-
-	console.log("Todos returned from sortTodos:", todos);
 	return todos as Todo[];
 }
-
-
-// i can create an instance of todo directly with tag now, but i get error when trying to edit, when setting current value to input

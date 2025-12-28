@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="./src/styles/calendar.css" />
   </head>
   <body>
-    <div id="account">
+    <main id="account">
       <h2 class="header-text" id="greeting"></h2>
 
       <select id="filterTodos">
@@ -38,13 +38,13 @@
 
       <input type="date" id="filterSortDate" />
 
-      <button class="btn" id="addTag">+ (Tag)</button>
+      <button class="btn" id="openTagForm">+ (Tag)</button>
       <button class="btn" id="openCalendar">Calendar view</button>
       <fieldset>
         <legend>Tags:</legend>
         <ul id="tagsList"></ul>
       </fieldset>
-      <button class="btn" id="createTodoTrigger">Add</button>
+      <button class="btn" id="createTodo">Add</button>
       <ul id="todoList"></ul>
       <button class="btn" id="clearTodosBtn">Clear</button>
       <fieldset id="deleteOptions">
@@ -66,13 +66,13 @@
         </div>
       </fieldset>
 
-      <div class="user-menu">
+      <nav class="user-menu">
         <button class="btn" id="updateUserForm">Update User</button>
         <button class="btn" id="sendLink">Reset password</button>      
         <button class="btn" id="signOut">Sign out</button>
-      </div>
+      </nav>
 
-    </div>
+    </main>
 
     <div id="calendar">
       <button class="btn" id="goBack">Go back to list view</button>
@@ -97,7 +97,7 @@
       <label for="password2">Repeat password:</label>
       <input id="password2" type="text" />
 
-      <p id="error"></p>
+      <p class="error"></p>
 
       <button class="btn" type="button" id="signUpBtn">Create Account</button>
       <button type="reset" class="cancel btn">Cancel</button>
@@ -111,7 +111,7 @@
       <label for="password2Reset">Repeat password:</label>
       <input id="password2Reset" type="text" />
 
-      <p id="errorResetPassword"></p>
+      <p class="error"></p>
 
       <button class="btn" type="button" id="resetPasswordBtn">Reset password</button>
       <button type="reset" class="cancel btn">Cancel</button>
@@ -120,13 +120,13 @@
 
     <form class="user-form"  id="signIn">
 
-      <label for="email">Email:</label>
+      <label for="signInEmail">Email:</label>
       <input id="signInEmail" type="text" />
 
       <label for="password">Password:</label>
       <input id="password" type="text" />
 
-      <p id="signInError"></p>
+      <p class="error"></p>
 
       <button class="btn" type="button" id="signInBtn">Sign in</button>
       <button type="reset" class="cancel btn">Cancel</button>
@@ -141,13 +141,12 @@
       <label for="updateEmail">Email:</label>
       <input id="updateEmail" type="text" />
 
-      <p id="updateUserError"></p>
+      <p class="error"></p>
 
       <button class="btn" type="button" id="saveUser">Save changes</button>
       <button type="reset" class="cancel btn">Cancel</button>
 
     </form>
-
 
     <p id="message"></p>
 
@@ -166,7 +165,7 @@
         <label for="deadline">Deadline:</label>
         <input class="base-input" id="deadline" type="datetime-local" />
 
-        <p id="errorTodo"></p>
+      <p class="error"></p>
 
         <button class="btn beige-bg margin-auto" type="button" id="submitBtn">Submit</button>
 
@@ -185,7 +184,7 @@
         <label for="color" >Color:</label>
         <input id="color" class="color-input"  type="color" />
 
-        <p id="errorTag"></p>
+        <p class="error"></p>
 
         <button type="button" class="btn beige-bg margin-auto" id="tagBtn">Submit</button>
 

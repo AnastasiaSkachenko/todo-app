@@ -10,8 +10,7 @@ export const fetchTags = async () => {
     .eq("user", session?.user.id);;
 
     if (error) {
-        console.error("Supabase error:", error);
-        return [];
+        return {error: error.message};
     }
 
     return data as Tag[];
@@ -30,12 +29,9 @@ export const upsertTag = async (event: PointerEvent, tagId?: string) => {
   const description = descriptionInput.value.trim();
   const color = colorInput.value;
 
-  // Basic validation (optional but very helpful!)
   if (!name || !color) {
-    console.error("Missing required fields: name or color.");
-    return;
+      return {error: "Name and color are required"};
   }
-
 
   // Build row cleanly
   const tag = {
@@ -52,26 +48,20 @@ export const upsertTag = async (event: PointerEvent, tagId?: string) => {
       .upsert(tag)
       .select(); // ensures updated row comes back
 
-    if (error) throw error;
+    if (error) return {error: error.message};
 
     // Clear inputs
     nameInput.value = "";
     descriptionInput.value = "";
     colorInput.value = "#000000";
-
-    console.log("Upserted tag:", data);
-
       
     updateUI();
-
     return data;
 
   } catch (error) {
-    console.error("Supabase error:", error);
-    return null;
+    return {error: "Error while saving tag"};
   }
 };
-
 
 export const deleteTag = async (event: PointerEvent, tagId: string) => {
   event.preventDefault();
@@ -81,14 +71,13 @@ export const deleteTag = async (event: PointerEvent, tagId: string) => {
       .from("Tags")
       .delete()
             .eq("id", tagId);
-    if (error) throw error;
+    if (error) return {error: error.message};
 
-    // Clear inputs
     updateUI();
+    return { success: true };
 
   } catch (error) {
-    console.error("Supabase error:", error);
-    return null;
+    return {error: "Error while deleting tag"};
   }
 };
 
@@ -106,7 +95,7 @@ export const clearTags = async () => {
         updateUI();
 
     } catch (error) {
-        console.error("Supabase error:", error);
-        return null;
+        return {error: "Error while clearing tags"};
+
     }
 };
